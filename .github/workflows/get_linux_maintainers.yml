@@ -1,0 +1,16 @@
+name: 'Get Linux Maintainers'
+
+on:
+  schedule:
+    - cron:  '0 * * * *'
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout codes'
+        uses: actions/checkout@v1
+      - name: 'Get Weather'
+        run: bash ./weather.sh
+      - name: 'Get Date'
+        run: echo "REPORT_DATE=$(TZ=':Asia/Shanghai' date '+%Y-%m-%d %T')" >> $GITHUB_ENV
