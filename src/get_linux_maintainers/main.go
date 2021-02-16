@@ -93,30 +93,68 @@ func (m mudules) mailList4Excel() string {
 	return s
 }
 
+func (m mudules) mailList4Excel2() string {
+	s := ""
+	for k, v := range m {
+		for _, y := range v.Mails {
+			s = s + k + "\t" + y + "\n"
+		}
+	}
+	return s
+}
+
+// name->modules
+func (m mudules) mailList4Excel3() string {
+	nm := map[string]string{}
+	for k, v := range m {
+		for _, y := range v.Mails {
+			mu, ok := nm[y]
+			if ok {
+				nm[y] = mu + "\n" + k
+			} else {
+				nm[y] = k
+			}
+		}
+	}
+
+	s := ""
+	for k, v := range nm {
+		if strings.Contains(v, "\"") {
+			v = strings.ReplaceAll(v, "\"", "")
+		}
+		s = s + k + "\t\"" + v + "\"\n"
+	}
+
+	return s
+}
+
 func parseLine(s string, m *maintainer) {
 	h := s[0:2]
 	c := strings.TrimSpace(s[2:])
+	if strings.Contains(c, "\t") {
+		c = strings.ReplaceAll(c, "\t", " ")
+	}
+	/*
+		if strings.Contains(c, "\"") {
+			c = strings.ReplaceAll(c, "\"", "\"\"")
+		}
+		if strings.Contains(c, ",") && !strings.Contains(c, "\"") {
+			c = "\"" + c + "\""
+		}
 
-	if strings.Contains(c, "\"") {
-		c = strings.ReplaceAll(c, "\"", "\"\"")
-	}
-	if strings.Contains(c, ",") && !strings.Contains(c, "\"") {
-		c = "\"" + c + "\""
-	}
-
-	if strings.Contains(c, "VMware, Inc.") {
-		c = strings.ReplaceAll(c, "VMware, Inc.", "VMware Inc.")
-	}
-	if strings.Contains(c, "subscribers-only, for") {
-		c = strings.ReplaceAll(c, "subscribers-only, for", "subscribers-only and for")
-	}
-	if strings.Contains(c, "Lad, Prabhakar") {
-		c = strings.ReplaceAll(c, "Lad, Prabhakar", "Lad Prabhakar")
-	}
-	if strings.Contains(c, "Lee, Chun-Yi") {
-		c = strings.ReplaceAll(c, "Lee, Chun-Yi", "Lee Chun-Yi")
-	}
-
+			if strings.Contains(c, "VMware, Inc.") {
+				c = strings.ReplaceAll(c, "VMware, Inc.", "VMware Inc.")
+			}
+			if strings.Contains(c, "subscribers-only, for") {
+				c = strings.ReplaceAll(c, "subscribers-only, for", "subscribers-only and for")
+			}
+			if strings.Contains(c, "Lad, Prabhakar") {
+				c = strings.ReplaceAll(c, "Lad, Prabhakar", "Lad Prabhakar")
+			}
+			if strings.Contains(c, "Lee, Chun-Yi") {
+				c = strings.ReplaceAll(c, "Lee, Chun-Yi", "Lee Chun-Yi")
+			}
+	*/
 	switch h {
 	case "M:":
 		if m.Mails == nil {
@@ -177,7 +215,6 @@ func parseLine(s string, m *maintainer) {
 		}
 		m.ContentRegex = append(m.ContentRegex, c)
 	default:
-		//m.Module = s
 		log.Fatalf("Unknow flag: %s", s)
 	}
 }
@@ -235,9 +272,11 @@ func main() {
 		// 第二个支付不是冒号的行是模块名
 		if text[1] != ':' {
 			mtn = new(maintainer)
-			if strings.Contains(text, ",") {
-				text = "\"" + text + "\""
-			}
+			/*
+				if strings.Contains(text, ",") {
+					text = "\"" + text + "\""
+				}
+			*/
 			mlist[text] = mtn
 		} else {
 			text = strings.TrimSpace(text)
@@ -258,6 +297,7 @@ func main() {
 	}
 
 	write("D:\\code\\mj.json", string(encode))
-	write("D:\\code\\m.csv", mlist.CSV())
-	write("D:\\code\\m.txt", mlist.mailList4Excel())
+	//write("D:\\code\\m.csv", mlist.CSV())
+	//write("D:\\code\\m.txt", mlist.mailList4Excel2())
+	write("D:\\code\\m.txt", mlist.mailList4Excel3())
 }
